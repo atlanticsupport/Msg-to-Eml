@@ -1,0 +1,40 @@
+name: Build macOS App
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  workflow_dispatch: # Permite correr o workflow manualmente no GitHub
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt py2app
+
+    - name: Build app with py2app
+      run: |
+        python setup.py py2app
+
+    - name: Create ZIP archive for the App
+      run: |
+        # É importante zipar a .app no macOS para não se perderem as permissões e estrutura de ficheiros
+        cd dist
+        zip -r MSGtoOutlook.zip MSGtoOutlook.app
+
+    - name: Upload Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: MSGtoOutlook-macOS
+        path: dist/MSGtoOutlook.zip
